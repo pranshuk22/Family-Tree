@@ -1,0 +1,90 @@
+/* Make the entire page fullscreen */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    font-family: Arial, sans-serif;
+}
+
+/* Container for tree */
+#tree-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 150px;  
+    overflow: visible;  
+    background-image: url('background.png'); /* Set background image */
+    background-size: cover;  /* Ensure it covers the full page */
+    background-position: center;  /* Center the image */
+    background-attachment: fixed;  /* Keep it fixed when scrolling */
+}
+
+/* Optional: Add a semi-transparent overlay for better visibility */
+#tree-container::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3); /* Adjust transparency */
+    z-index: -1;
+}
+
+/* Search bar positioning */
+#search-container {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    z-index: 1000;
+}
+
+/* Search input and button */
+#searchInput {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 220px;
+}
+
+#searchButton {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+
+#searchButton:hover {
+    background-color: #0056b3;
+}
+
+/* Node styles */
+.node circle {
+    fill: rgb(46, 84, 115);
+    stroke: #fff;
+    stroke-width: 2px;
+    r: 14px;
+}
+
+/* Node text */
+.node text {
+    font-size: 16px;
+    fill: black;
+    text-anchor: middle;
+    transform: translateY(30px); 
+}
+
+/* Link styling */
+.link {
+    fill: none;
+    stroke: #aaa;
+    stroke-width: 3px;
+}
