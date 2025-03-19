@@ -53,7 +53,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Identify all independent roots
         const roots = findRootNodes(transformedData);
-        drawMultipleTrees(roots, transformedData);
+
+        if (roots.length > 0) {
+            // Get the first root node only
+            const firstRoot = roots[0];
+            drawTreeFromRoot(firstRoot, transformedData);
+        }
 
         // Search functionality
         const searchInput = document.getElementById("searchInput");
@@ -63,10 +68,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const searchId = searchInput.value.trim();
 
             if (searchId === "") {
-                // Reset to original tree if search is empty
-                const roots = findRootNodes(originalData);
-                svg.selectAll("*").remove();
-                drawMultipleTrees(roots, originalData);
+                // Reset to original first-root tree if search is empty
+                if (roots.length > 0) {
+                    svg.selectAll("*").remove();
+                    drawTreeFromRoot(roots[0], originalData);
+                }
                 return;
             }
 
@@ -105,16 +111,11 @@ document.addEventListener("DOMContentLoaded", function () {
         return root;
     }
 
-    // Draw multiple family trees
-    function drawMultipleTrees(roots, data) {
-        svg.selectAll("*").remove(); // Clear existing trees
-        let xOffset = 100; // Horizontal offset for multiple trees
-
-        roots.forEach(rootNode => {
-            const root = d3.hierarchy(buildHierarchy(data, rootNode));
-            drawTree(root, xOffset);
-            xOffset += 600; // Increase space between trees
-        });
+    // Draw tree for a single root node
+    function drawTreeFromRoot(rootNode, data) {
+        svg.selectAll("*").remove(); // Clear existing tree
+        const root = d3.hierarchy(buildHierarchy(data, rootNode));
+        drawTree(root, 100); // Set a fixed xOffset
     }
 
     // Draw individual tree
@@ -184,6 +185,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const roots = findRootNodes(filteredData);
         svg.selectAll("*").remove();
-        drawMultipleTrees(roots, filteredData);
+        if (roots.length > 0) {
+            drawTreeFromRoot(roots[0], filteredData);
+        }
     }
 });
