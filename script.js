@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     d3.select("svg").call(zoom);
 
-    let originalData = []; // Store original data for reset
+    let originalData = []; // Store full dataset
 
     // Load data from CSV
     d3.csv("family_tree.csv").then(function (data) {
@@ -30,9 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Convert CSV text fields to proper types
         let nodes = new Map();
-
         data.forEach(d => {
             let parentID = d["Parent ID"] ? +d["Parent ID"] : null;
             let parentName = d["Parent Name"];
@@ -48,16 +46,11 @@ document.addEventListener("DOMContentLoaded", function () {
             nodes.set(childID, { id: childID, name: childName, parent: parentID });
         });
 
-        let transformedData = Array.from(nodes.values());
-        originalData = transformedData; // Store original data for reset
-
-        // Identify all independent roots
-        const roots = findRootNodes(transformedData);
+        originalData = Array.from(nodes.values()); // Store full dataset
+        const roots = findRootNodes(originalData);
 
         if (roots.length > 0) {
-            // Get the first root node only
-            const firstRoot = roots[0];
-            drawTreeFromRoot(firstRoot, transformedData);
+            drawTreeFromRoot(roots[0], originalData); // Show first root initially
         }
 
         // Search functionality
@@ -68,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const searchId = searchInput.value.trim();
 
             if (searchId === "") {
-                // Reset to original first-root tree if search is empty
+                // Reset to first root tree if search is empty
                 if (roots.length > 0) {
                     svg.selectAll("*").remove();
                     drawTreeFromRoot(roots[0], originalData);
@@ -90,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // Find all root nodes (nodes without parents)
+    // Find root nodes (nodes without parents)
     function findRootNodes(data) {
         let childSet = new Set(data.map(d => d.id));
         return data.filter(d => d.parent === null || !childSet.has(d.parent));
@@ -113,15 +106,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Draw tree for a single root node
     function drawTreeFromRoot(rootNode, data) {
-        svg.selectAll("*").remove(); // Clear existing tree
+        svg.selectAll("*").remove(); // Clear previous tree
         const root = d3.hierarchy(buildHierarchy(data, rootNode));
-        drawTree(root, 100); // Set a fixed xOffset
+        drawTree(root, 100);
     }
 
-    // Draw individual tree
+    // Draw tree structure
     function drawTree(root, xOffset) {
-        const treeLayout = d3.tree().nodeSize([100, 300]); // Increase spacing
-
+        const treeLayout = d3.tree().nodeSize([100, 300]);
         treeLayout(root);
 
         // Draw links
@@ -149,10 +141,10 @@ document.addEventListener("DOMContentLoaded", function () {
             .attr("dy", "0.35em")
             .attr("x", d => (d.children ? -20 : 20))
             .attr("text-anchor", d => (d.children ? "end" : "start"))
-            .text(d => `${d.data.name} (ID: ${d.data.id})`);
+            .text(d => `${d.data.name} (${d.data.id})`);
     }
 
-    // Highlight a node and show its relatives
+    // Highlight a node and show relatives
     function highlightNode(searchId, data) {
         const selectedNode = data.find(d => d.id === searchId);
         if (!selectedNode) {
@@ -161,7 +153,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         let parents = [];
+        let siblings = [];
         let current = selectedNode;
+
+        // Find up to 2 generations of parents
         for (let i = 0; i < 2; i++) {
             if (current.parent !== null) {
                 let parent = data.find(d => d.id === current.parent);
@@ -170,6 +165,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     current = parent;
                 }
             }
+        }
+
+        // Find siblings (all children of the immediate parent)
+        if (selectedNode.parent !== null) {
+            siblings = data.filter(d => d.parent === selectedNode.parent && d.id !== searchId);
         }
 
         let children = [];
@@ -181,7 +181,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         findChildren(selectedNode, 0);
 
-        let filteredData = [selectedNode, ...parents, ...children];
+        let filteredData = [selectedNode, ...parents, ...siblings, ...children];
 
         const roots = findRootNodes(filteredData);
         svg.selectAll("*").remove();
